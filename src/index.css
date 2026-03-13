@@ -1,0 +1,258 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  background: #fff;
+  color: #202124;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100vh;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Sheets-like table */
+.sheets-table {
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 100%;
+}
+
+.sheets-table th,
+.sheets-table td {
+  border: 1px solid #e0e0e0;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+.sheets-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  text-align: center;
+}
+
+.sheets-table tbody tr:nth-child(even) td {
+  background: #f8f9fa;
+}
+
+.sheets-table tbody tr:nth-child(odd) td {
+  background: #fff;
+}
+
+.sheets-table .sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: inherit;
+}
+
+.sheets-table thead th {
+  position: sticky;
+  z-index: 3;
+}
+
+.sheets-table thead th.sticky-col {
+  z-index: 4;
+}
+
+.sheets-table thead tr:nth-child(1) th {
+  top: 0;
+}
+
+.sheets-table thead tr:nth-child(2) th {
+  top: 25px;
+}
+
+.sheets-table thead tr:nth-child(3) th {
+  top: 50px;
+}
+
+/* Positive/negative colors */
+.dod-positive {
+  color: #137333;
+}
+
+.dod-negative {
+  color: #c5221f;
+}
+
+.dod-neutral {
+  color: #80868b;
+}
+
+/* Tab bar */
+.sheets-tab-bar {
+  display: flex;
+  align-items: center;
+  background: #f1f3f4;
+  border-top: 1px solid #e0e0e0;
+  padding: 0 8px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.sheets-tab {
+  padding: 0 16px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  cursor: pointer;
+  border-top: 2px solid transparent;
+  color: #5f6368;
+  user-select: none;
+}
+
+.sheets-tab:hover {
+  background: #e8eaed;
+}
+
+.sheets-tab.active {
+  border-top: 2px solid #0f9d58;
+  color: #0f9d58;
+  background: #fff;
+  font-weight: 600;
+}
+
+/* Top toolbar */
+.sheets-toolbar {
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.sheets-title {
+  font-size: 18px;
+  color: #202124;
+  font-weight: normal;
+}
+
+.sheets-icon {
+  color: #0f9d58;
+  font-size: 24px;
+}
+
+/* Row number column */
+.row-num {
+  color: #80868b;
+  font-size: 11px;
+  text-align: center;
+  min-width: 28px;
+  background: #f8f9fa !important;
+  border-right: 1px solid #e0e0e0;
+  user-select: none;
+}
+
+/* Rollup rows */
+.rollup-row td {
+  background: #e8f0fe !important;
+  font-weight: 600;
+}
+
+.rollup-row.grand-total td {
+  background: #d2e3fc !important;
+}
+
+/* History sub-table */
+.history-container {
+  padding: 0 0 0 32px;
+  background: #fff;
+}
+
+.history-table {
+  border-collapse: collapse;
+  width: max-content;
+  border-left: 3px solid #1a73e8;
+}
+
+.history-table th,
+.history-table td {
+  border: 1px solid #e0e0e0;
+  padding: 3px 7px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.history-table th {
+  background: #e8f0fe;
+  font-weight: 600;
+  text-align: center;
+  position: sticky;
+  top: 75px;
+  z-index: 2;
+}
+
+.history-table tbody tr:nth-child(even) td {
+  background: #f8f9fa;
+}
+
+.history-table tbody tr:nth-child(odd) td {
+  background: #fff;
+}
+
+/* Skeleton animation */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.skeleton-cell {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+  border-radius: 2px;
+  height: 12px;
+  display: inline-block;
+}
+
+/* Expand button */
+.expand-btn {
+  background: none;
+  border: 1px solid #dadce0;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 10px;
+  padding: 1px 4px;
+  color: #5f6368;
+  margin-right: 6px;
+  line-height: 1;
+}
+
+.expand-btn:hover {
+  background: #f1f3f4;
+}
+
+/* Number cells */
+.num-cell {
+  text-align: right;
+}
+
+/* Client cell */
+.client-cell {
+  text-align: left;
+  min-width: 140px;
+}
+
+/* Scrollable content area */
+.table-scroll-container {
+  overflow: auto;
+  flex: 1;
+  position: relative;
+}
