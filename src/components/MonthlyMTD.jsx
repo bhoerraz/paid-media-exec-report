@@ -2,11 +2,13 @@ import React from 'react';
 import { CLIENTS, PAID_SOCIAL, PAID_SEARCH } from '../constants/platforms';
 import {
   getMTDData,
+  getPriorMonthMTDData,
   aggregateByPlatform,
   getFirstOfMonthStr,
-  getYesterdayStr,
+  getLatestDateStr,
 } from '../utils/parseSheetData';
-import { calcROAS, calcMER, calcCAC, formatCurrency, formatROAS, formatMER } from '../utils/metrics';
+import { calcDoD, calcROAS, calcMER, calcCAC, formatCurrency, formatROAS, formatMER } from '../utils/metrics';
+import DoDCell from './DoDCell';
 
 const ALL_PLATFORMS = [...PAID_SOCIAL, ...PAID_SEARCH];
 
@@ -34,7 +36,7 @@ function buildRollupData(clientMap) {
   return result;
 }
 
-function ClientMTDRow({ client, byPlatform }) {
+function getSpends(byPlatform) {
   const tMeta = byPlatform['Meta']?.spend || 0;
   const tTikTok = byPlatform['TikTok']?.spend || 0;
   const tAxon = byPlatform['Axon']?.spend || 0;
@@ -44,111 +46,99 @@ function ClientMTDRow({ client, byPlatform }) {
   const tPS = tMeta + tTikTok + tAxon + tSnap;
   const tSearch = tGoogle + tBing;
   const tTotal = tPS + tSearch;
-
-  const roasMeta = calcROAS(byPlatform['Meta']?.revenue || 0, tMeta);
-  const roasTikTok = calcROAS(byPlatform['TikTok']?.revenue || 0, tTikTok);
-  const roasAxon = calcROAS(byPlatform['Axon']?.revenue || 0, tAxon);
-  const roasSnap = calcROAS(byPlatform['Snap']?.revenue || 0, tSnap);
-
   const tShopify = ALL_PLATFORMS.reduce((acc, p) => acc + (byPlatform[p]?.shopifySales || 0), 0);
-  const tNcOrders = ALL_PLATFORMS.reduce((acc, p) => acc + (byPlatform[p]?.ncOrders || 0), 0);
+  return { tMeta, tTikTok, tAxon, tSnap, tGoogle, tBing, tPS, tSearch, tTotal, tShopify };
+}
 
-  const mer = calcMER(tShopify, tTotal);
-  const cac = calcCAC(tTotal, tNcOrders);
+function ClientMTDRow({ client, byPlatform, priorByPlatform }) {
+  const t = getSpends(byPlatform);
+  const p = getSpends(priorByPlatform);
+
+  const roasMeta = calcROAS(byPlatform['Meta']?.revenue || 0, t.tMeta);
+  const roasTikTok = calcROAS(byPlatform['TikTok']?.revenue || 0, t.tTikTok);
+  const roasAxon = calcROAS(byPlatform['Axon']?.revenue || 0, t.tAxon);
+  const roasSnap = calcROAS(byPlatform['Snap']?.revenue || 0, t.tSnap);
+
+  const tNcOrders = ALL_PLATFORMS.reduce((acc, pl) => acc + (byPlatform[pl]?.ncOrders || 0), 0);
+  const mer = calcMER(t.tShopify, t.tTotal);
+  const cac = calcCAC(t.tTotal, tNcOrders);
 
   return (
     <tr>
       <td className="sticky-col client-cell">{client}</td>
-      {/* Paid Social */}
-      <td className="num-cell">{formatCurrency(tMeta)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      <td className="num-cell">{formatCurrency(tTikTok)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      <td className="num-cell">{formatCurrency(tAxon)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      <td className="num-cell">{formatCurrency(tSnap)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      {/* Total PS */}
-      <td className="num-cell" style={{ fontWeight: 600 }}>{formatCurrency(tPS)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      {/* Search */}
-      <td className="num-cell">{formatCurrency(tGoogle)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      <td className="num-cell">{formatCurrency(tBing)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      {/* Total Search */}
-      <td className="num-cell" style={{ fontWeight: 600 }}>{formatCurrency(tSearch)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      {/* Total Spend */}
-      <td className="num-cell" style={{ fontWeight: 700 }}>{formatCurrency(tTotal)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      {/* ROAS */}
+      <td className="num-cell">{formatCurrency(t.tMeta)}</td>
+      <DoDCell value={calcDoD(t.tMeta, p.tMeta)} />
+      <td className="num-cell">{formatCurrency(t.tTikTok)}</td>
+      <DoDCell value={calcDoD(t.tTikTok, p.tTikTok)} />
+      <td className="num-cell">{formatCurrency(t.tAxon)}</td>
+      <DoDCell value={calcDoD(t.tAxon, p.tAxon)} />
+      <td className="num-cell">{formatCurrency(t.tSnap)}</td>
+      <DoDCell value={calcDoD(t.tSnap, p.tSnap)} />
+      <td className="num-cell" style={{ fontWeight: 600 }}>{formatCurrency(t.tPS)}</td>
+      <DoDCell value={calcDoD(t.tPS, p.tPS)} />
+      <td className="num-cell">{formatCurrency(t.tGoogle)}</td>
+      <DoDCell value={calcDoD(t.tGoogle, p.tGoogle)} />
+      <td className="num-cell">{formatCurrency(t.tBing)}</td>
+      <DoDCell value={calcDoD(t.tBing, p.tBing)} />
+      <td className="num-cell" style={{ fontWeight: 600 }}>{formatCurrency(t.tSearch)}</td>
+      <DoDCell value={calcDoD(t.tSearch, p.tSearch)} />
+      <td className="num-cell" style={{ fontWeight: 700 }}>{formatCurrency(t.tTotal)}</td>
+      <DoDCell value={calcDoD(t.tTotal, p.tTotal)} />
       <td className="num-cell">{formatROAS(roasMeta)}</td>
       <td className="num-cell">{formatROAS(roasTikTok)}</td>
       <td className="num-cell">{formatROAS(roasAxon)}</td>
       <td className="num-cell">{formatROAS(roasSnap)}</td>
-      {/* Shopify */}
-      <td className="num-cell" style={{ fontWeight: 600 }}>{formatCurrency(tShopify)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      {/* MER */}
+      <td className="num-cell" style={{ fontWeight: 600 }}>{formatCurrency(t.tShopify)}</td>
+      <DoDCell value={calcDoD(t.tShopify, p.tShopify)} />
       <td className="num-cell">{formatMER(mer)}</td>
-      {/* CAC */}
       <td className="num-cell">{formatCurrency(cac)}</td>
     </tr>
   );
 }
 
-function RollupMTDRow({ label, rollupData, isGrandTotal = false }) {
-  const tMeta = rollupData?.Meta?.spend || 0;
-  const tTikTok = rollupData?.TikTok?.spend || 0;
-  const tAxon = rollupData?.Axon?.spend || 0;
-  const tSnap = rollupData?.Snap?.spend || 0;
-  const tGoogle = rollupData?.Google?.spend || 0;
-  const tBing = rollupData?.Bing?.spend || 0;
-  const tPS = tMeta + tTikTok + tAxon + tSnap;
-  const tSearch = tGoogle + tBing;
-  const tTotal = tPS + tSearch;
+function RollupMTDRow({ label, rollupData, priorRollupData, isGrandTotal = false }) {
+  const t = getSpends(rollupData);
+  const p = getSpends(priorRollupData);
 
-  const roasMeta = calcROAS(rollupData?.Meta?.revenue || 0, tMeta);
-  const roasTikTok = calcROAS(rollupData?.TikTok?.revenue || 0, tTikTok);
-  const roasAxon = calcROAS(rollupData?.Axon?.revenue || 0, tAxon);
-  const roasSnap = calcROAS(rollupData?.Snap?.revenue || 0, tSnap);
+  const roasMeta = calcROAS(rollupData?.Meta?.revenue || 0, t.tMeta);
+  const roasTikTok = calcROAS(rollupData?.TikTok?.revenue || 0, t.tTikTok);
+  const roasAxon = calcROAS(rollupData?.Axon?.revenue || 0, t.tAxon);
+  const roasSnap = calcROAS(rollupData?.Snap?.revenue || 0, t.tSnap);
 
-  const tShopify = ALL_PLATFORMS.reduce((acc, p) => acc + (rollupData?.[p]?.shopifySales || 0), 0);
-  const tNcOrders = ALL_PLATFORMS.reduce((acc, p) => acc + (rollupData?.[p]?.ncOrders || 0), 0);
-
-  const mer = calcMER(tShopify, tTotal);
-  const cac = calcCAC(tTotal, tNcOrders);
+  const tShopify = t.tShopify;
+  const tNcOrders = ALL_PLATFORMS.reduce((acc, pl) => acc + (rollupData?.[pl]?.ncOrders || 0), 0);
+  const mer = calcMER(tShopify, t.tTotal);
+  const cac = calcCAC(t.tTotal, tNcOrders);
 
   const rowClass = isGrandTotal ? 'rollup-row grand-total' : 'rollup-row';
 
   return (
     <tr className={rowClass}>
       <td className="sticky-col client-cell"><span style={{ fontWeight: 700 }}>{label}</span></td>
-      <td className="num-cell">{formatCurrency(tMeta)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      <td className="num-cell">{formatCurrency(tTikTok)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      <td className="num-cell">{formatCurrency(tAxon)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      <td className="num-cell">{formatCurrency(tSnap)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      <td className="num-cell" style={{ fontWeight: 700 }}>{formatCurrency(tPS)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      <td className="num-cell">{formatCurrency(tGoogle)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      <td className="num-cell">{formatCurrency(tBing)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      <td className="num-cell" style={{ fontWeight: 700 }}>{formatCurrency(tSearch)}</td>
-      <td className="num-cell dod-neutral">—</td>
-      <td className="num-cell" style={{ fontWeight: 700 }}>{formatCurrency(tTotal)}</td>
-      <td className="num-cell dod-neutral">—</td>
+      <td className="num-cell">{formatCurrency(t.tMeta)}</td>
+      <DoDCell value={calcDoD(t.tMeta, p.tMeta)} />
+      <td className="num-cell">{formatCurrency(t.tTikTok)}</td>
+      <DoDCell value={calcDoD(t.tTikTok, p.tTikTok)} />
+      <td className="num-cell">{formatCurrency(t.tAxon)}</td>
+      <DoDCell value={calcDoD(t.tAxon, p.tAxon)} />
+      <td className="num-cell">{formatCurrency(t.tSnap)}</td>
+      <DoDCell value={calcDoD(t.tSnap, p.tSnap)} />
+      <td className="num-cell" style={{ fontWeight: 700 }}>{formatCurrency(t.tPS)}</td>
+      <DoDCell value={calcDoD(t.tPS, p.tPS)} />
+      <td className="num-cell">{formatCurrency(t.tGoogle)}</td>
+      <DoDCell value={calcDoD(t.tGoogle, p.tGoogle)} />
+      <td className="num-cell">{formatCurrency(t.tBing)}</td>
+      <DoDCell value={calcDoD(t.tBing, p.tBing)} />
+      <td className="num-cell" style={{ fontWeight: 700 }}>{formatCurrency(t.tSearch)}</td>
+      <DoDCell value={calcDoD(t.tSearch, p.tSearch)} />
+      <td className="num-cell" style={{ fontWeight: 700 }}>{formatCurrency(t.tTotal)}</td>
+      <DoDCell value={calcDoD(t.tTotal, p.tTotal)} />
       <td className="num-cell">{formatROAS(roasMeta)}</td>
       <td className="num-cell">{formatROAS(roasTikTok)}</td>
       <td className="num-cell">{formatROAS(roasAxon)}</td>
       <td className="num-cell">{formatROAS(roasSnap)}</td>
       <td className="num-cell" style={{ fontWeight: 700 }}>{formatCurrency(tShopify)}</td>
-      <td className="num-cell dod-neutral">—</td>
+      <DoDCell value={calcDoD(t.tShopify, p.tShopify)} />
       <td className="num-cell">{formatMER(mer)}</td>
       <td className="num-cell">{formatCurrency(cac)}</td>
     </tr>
@@ -157,19 +147,34 @@ function RollupMTDRow({ label, rollupData, isGrandTotal = false }) {
 
 export default function MonthlyMTD({ data }) {
   const mtdRows = getMTDData(data);
+  const priorRows = getPriorMonthMTDData(data);
+
   const activeClients = [...new Set(mtdRows.map((r) => r.client))];
   const clientList = activeClients.length > 0 ? activeClients : CLIENTS;
 
   const clientMap = buildClientPlatformMap(mtdRows);
+  const priorClientMap = buildClientPlatformMap(priorRows);
+
   const grandRollup = buildRollupData(clientMap);
+  const priorGrandRollup = buildRollupData(priorClientMap);
 
   const psSocialRollup = { ...grandRollup };
   PAID_SEARCH.forEach((p) => { psSocialRollup[p] = { spend: 0, revenue: 0, shopifySales: 0, ncOrders: 0 }; });
+  const priorPsSocialRollup = { ...priorGrandRollup };
+  PAID_SEARCH.forEach((p) => { priorPsSocialRollup[p] = { spend: 0, revenue: 0, shopifySales: 0, ncOrders: 0 }; });
+
   const searchRollup = { ...grandRollup };
   PAID_SOCIAL.forEach((p) => { searchRollup[p] = { spend: 0, revenue: 0, shopifySales: 0, ncOrders: 0 }; });
+  const priorSearchRollup = { ...priorGrandRollup };
+  PAID_SOCIAL.forEach((p) => { priorSearchRollup[p] = { spend: 0, revenue: 0, shopifySales: 0, ncOrders: 0 }; });
 
   const firstOfMonth = getFirstOfMonthStr();
-  const yesterday = getYesterdayStr();
+  const yesterday = getLatestDateStr();
+
+  // Prior month label
+  const priorDate = new Date(firstOfMonth);
+  priorDate.setMonth(priorDate.getMonth() - 1);
+  const priorMonthName = priorDate.toLocaleString('en-US', { month: 'long' });
 
   const H1 = 0, H2 = 25, H3 = 50;
   const thStyle = (top, extra = {}) => ({ top, position: 'sticky', ...extra });
@@ -179,7 +184,7 @@ export default function MonthlyMTD({ data }) {
     <div className="table-scroll-container">
       <div style={{ padding: '6px 16px', background: '#e8f0fe', borderBottom: '1px solid #c5d3e8', fontSize: 12, color: '#1a73e8' }}>
         <strong>Month-to-Date</strong> &nbsp;·&nbsp; {firstOfMonth} through {yesterday} &nbsp;·&nbsp;
-        <span style={{ color: '#80868b' }}>vs. Mo. Prior and vs. Yr. Prior columns are available for manual input — showing — when no prior data in feed</span>
+        <span style={{ color: '#80868b' }}>vs. {priorMonthName} (same day range)</span>
       </div>
       <table className="sheets-table">
         <thead>
@@ -217,7 +222,6 @@ export default function MonthlyMTD({ data }) {
           </tr>
           {/* Row 3: MTD / vs. Mo. Prior */}
           <tr style={{ height: 25 }}>
-            {/* For each of the paired columns: MTD + vs. Mo. Prior */}
             {['#e6f4ea','#e6f4ea','#e6f4ea','#e6f4ea','#ceead6','#e8f0fe','#e8f0fe','#d2e3fc','#f1f3f4'].map((bg, i) => (
               <React.Fragment key={i}>
                 <th style={thStyle(H3, { background: bg, fontWeight: 'normal', fontSize: 11 })}>MTD</th>
@@ -238,11 +242,12 @@ export default function MonthlyMTD({ data }) {
               key={client}
               client={client}
               byPlatform={clientMap[client] || {}}
+              priorByPlatform={priorClientMap[client] || {}}
             />
           ))}
-          <RollupMTDRow label="Total Paid Social" rollupData={psSocialRollup} />
-          <RollupMTDRow label="Total Paid Search" rollupData={searchRollup} />
-          <RollupMTDRow label="Grand Total" rollupData={grandRollup} isGrandTotal />
+          <RollupMTDRow label="Total Paid Social" rollupData={psSocialRollup} priorRollupData={priorPsSocialRollup} />
+          <RollupMTDRow label="Total Paid Search" rollupData={searchRollup} priorRollupData={priorSearchRollup} />
+          <RollupMTDRow label="Grand Total" rollupData={grandRollup} priorRollupData={priorGrandRollup} isGrandTotal />
         </tbody>
       </table>
     </div>

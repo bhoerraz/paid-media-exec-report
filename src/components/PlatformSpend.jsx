@@ -1,12 +1,12 @@
 import React from 'react';
 import { PLATFORMS } from '../constants/platforms';
-import { getYesterdayStr, getFirstOfMonthStr, aggregateByPlatform } from '../utils/parseSheetData';
+import { getLatestDateStr, getFirstOfMonthStr, aggregateByPlatform } from '../utils/parseSheetData';
 import { formatCurrency } from '../utils/metrics';
 
 function getYTDRows(parsedRows) {
-  const yesterday = getYesterdayStr();
-  const year = yesterday.slice(0, 4);
-  return parsedRows.filter((r) => r.date >= `${year}-01-01` && r.date <= yesterday);
+  const latest = getLatestDateStr();
+  const year = latest.slice(0, 4);
+  return parsedRows.filter((r) => r.date >= `${year}-01-01` && r.date <= latest);
 }
 
 function pct(part, total) {
@@ -15,14 +15,14 @@ function pct(part, total) {
 }
 
 export default function PlatformSpend({ data }) {
-  const yesterday = getYesterdayStr();
+  const latest = getLatestDateStr();
   const firstOfMonth = getFirstOfMonthStr();
 
-  const yesterdayRows = data.filter((r) => r.date === yesterday);
-  const mtdRows = data.filter((r) => r.date >= firstOfMonth && r.date <= yesterday);
+  const latestRows = data.filter((r) => r.date === latest);
+  const mtdRows = data.filter((r) => r.date >= firstOfMonth && r.date <= latest);
   const ytdRows = getYTDRows(data);
 
-  const yByPlat = aggregateByPlatform(yesterdayRows, PLATFORMS);
+  const yByPlat = aggregateByPlatform(latestRows, PLATFORMS);
   const mByPlat = aggregateByPlatform(mtdRows, PLATFORMS);
   const yByPlatYTD = aggregateByPlatform(ytdRows, PLATFORMS);
 

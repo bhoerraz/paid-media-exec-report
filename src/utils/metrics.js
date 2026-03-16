@@ -23,8 +23,8 @@ export function formatCurrency(val) {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(val);
 }
 
@@ -45,7 +45,10 @@ export function formatPercent(val) {
 
 export function formatNumber(val) {
   if (val === null || val === undefined || isNaN(val)) return '—';
-  return new Intl.NumberFormat('en-US').format(Math.round(val));
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(val);
 }
 
 export function formatROAS(val) {

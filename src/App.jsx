@@ -5,7 +5,7 @@ import MonthlyMTD from './components/MonthlyMTD';
 import PlatformSpend from './components/PlatformSpend';
 import LoadingSkeleton from './components/LoadingSkeleton';
 import ErrorState from './components/ErrorState';
-import { getYesterdayStr } from './utils/parseSheetData';
+import { getLatestDateStr } from './utils/parseSheetData';
 
 function formatTime(date) {
   if (!date) return '';
@@ -37,7 +37,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('daily');
   const { data, loading, error, lastUpdated, isMock, refetch } = useSheetData();
 
-  const yesterday = getYesterdayStr();
+  const yesterday = getLatestDateStr();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
@@ -94,7 +94,7 @@ export default function App() {
       </div>
 
       {/* ── Main content area ── */}
-      <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+      <div style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
         {loading ? (
           <LoadingSkeleton />
         ) : error ? (
